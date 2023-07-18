@@ -114,6 +114,9 @@ export default abstract class BaseDistribution {
       this.osPlat == 'win32' ? `${fileName}.7z` : `${fileName}.tar.gz`;
     const initialUrl = this.getDistributionUrl();
     const url = `${initialUrl}/v${version}/${urlFileName}`;
+    
+    core.info(`initialUrl: ${initialUrl}`);
+    core.info(`url: ${url}`);
 
     return <INodeVersionInfo>{
       downloadUrl: url,
