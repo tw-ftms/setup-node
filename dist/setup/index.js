@@ -71695,6 +71695,8 @@ class BaseDistribution {
         const urlFileName = this.osPlat == 'win32' ? `${fileName}.7z` : `${fileName}.tar.gz`;
         const initialUrl = this.getDistributionUrl();
         const url = `${initialUrl}/v${version}/${urlFileName}`;
+        core.info(`initialUrl: ${initialUrl}`);
+        core.info(`url: ${url}`);
         return {
             downloadUrl: url,
             resolvedVersion: version,
@@ -71915,199 +71917,17 @@ exports["default"] = NightlyNodejs;
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
-const tc = __importStar(__nccwpck_require__(7784));
-const path_1 = __importDefault(__nccwpck_require__(1017));
 const base_distribution_1 = __importDefault(__nccwpck_require__(7));
 class OfficialBuilds extends base_distribution_1.default {
     constructor(nodeInfo) {
         super(nodeInfo);
     }
-    setupNodeJs() {
-        return __awaiter(this, void 0, void 0, function* () {
-            let manifest;
-            let nodeJsVersions;
-            const osArch = this.translateArchToDistUrl(this.nodeInfo.arch);
-            if (this.isLtsAlias(this.nodeInfo.versionSpec)) {
-                core.info('Attempt to resolve LTS alias from manifest...');
-                // No try-catch since it's not possible to resolve LTS alias without manifest
-                manifest = yield this.getManifest();
-                this.nodeInfo.versionSpec = this.resolveLtsAliasFromManifest(this.nodeInfo.versionSpec, this.nodeInfo.stable, manifest);
-            }
-            if (this.isLatestSyntax(this.nodeInfo.versionSpec)) {
-                nodeJsVersions = yield this.getNodeJsVersions();
-                const versions = this.filterVersions(nodeJsVersions);
-                this.nodeInfo.versionSpec = this.evaluateVersions(versions);
-                core.info('getting latest node version...');
-            }
-            if (this.nodeInfo.checkLatest) {
-                core.info('Attempt to resolve the latest version from manifest...');
-                const resolvedVersion = yield this.resolveVersionFromManifest(this.nodeInfo.versionSpec, this.nodeInfo.stable, osArch, manifest);
-                if (resolvedVersion) {
-                    this.nodeInfo.versionSpec = resolvedVersion;
-                    core.info(`Resolved as '${resolvedVersion}'`);
-                }
-                else {
-                    core.info(`Failed to resolve version ${this.nodeInfo.versionSpec} from manifest`);
-                }
-            }
-            let toolPath = this.findVersionInHostedToolCacheDirectory();
-            if (toolPath) {
-                core.info(`Found in cache @ ${toolPath}`);
-            }
-            else {
-                let downloadPath = '';
-                try {
-                    core.info(`Attempting to download ${this.nodeInfo.versionSpec}...`);
-                    const versionInfo = yield this.getInfoFromManifest(this.nodeInfo.versionSpec, this.nodeInfo.stable, osArch, manifest);
-                    if (versionInfo) {
-                        core.info(`Acquiring ${versionInfo.resolvedVersion} - ${versionInfo.arch} from ${versionInfo.downloadUrl}`);
-                        downloadPath = yield tc.downloadTool(versionInfo.downloadUrl, undefined, this.nodeInfo.auth);
-                        if (downloadPath) {
-                            toolPath = yield this.extractArchive(downloadPath, versionInfo);
-                        }
-                    }
-                    else {
-                        core.info('Not found in manifest. Falling back to download directly from Node');
-                    }
-                }
-                catch (err) {
-                    // Rate limit?
-                    if (err instanceof tc.HTTPError &&
-                        (err.httpStatusCode === 403 || err.httpStatusCode === 429)) {
-                        core.info(`Received HTTP status code ${err.httpStatusCode}. This usually indicates the rate limit has been exceeded`);
-                    }
-                    else {
-                        core.info(err.message);
-                    }
-                    core.debug(err.stack);
-                    core.info('Falling back to download directly from Node');
-                }
-                if (!toolPath) {
-                    const nodeJsVersions = yield this.getNodeJsVersions();
-                    const versions = this.filterVersions(nodeJsVersions);
-                    const evaluatedVersion = this.evaluateVersions(versions);
-                    if (!evaluatedVersion) {
-                        throw new Error(`Unable to find Node version '${this.nodeInfo.versionSpec}' for platform ${this.osPlat} and architecture ${this.nodeInfo.arch}.`);
-                    }
-                    const toolName = this.getNodejsDistInfo(evaluatedVersion);
-                    toolPath = yield this.downloadNodejs(toolName);
-                }
-            }
-            if (this.osPlat != 'win32') {
-                toolPath = path_1.default.join(toolPath, 'bin');
-            }
-            core.addPath(toolPath);
-        });
-    }
-    evaluateVersions(versions) {
-        let version = '';
-        if (this.isLatestSyntax(this.nodeInfo.versionSpec)) {
-            core.info(`getting latest node version...`);
-            return versions[0];
-        }
-        version = super.evaluateVersions(versions);
-        return version;
-    }
     getDistributionUrl() {
         return `https://nodejs.org/dist`;
-    }
-    getManifest() {
-        core.debug('Getting manifest from actions/node-versions@main');
-        return tc.getManifestFromRepo('actions', 'node-versions', this.nodeInfo.auth, 'main');
-    }
-    resolveLtsAliasFromManifest(versionSpec, stable, manifest) {
-        var _a;
-        const alias = (_a = versionSpec.split('lts/')[1]) === null || _a === void 0 ? void 0 : _a.toLowerCase();
-        if (!alias) {
-            throw new Error(`Unable to parse LTS alias for Node version '${versionSpec}'`);
-        }
-        core.debug(`LTS alias '${alias}' for Node version '${versionSpec}'`);
-        // Supported formats are `lts/<alias>`, `lts/*`, and `lts/-n`. Where asterisk means highest possible LTS and -n means the nth-highest.
-        const n = Number(alias);
-        const aliases = Object.fromEntries(manifest
-            .filter(x => x.lts && x.stable === stable)
-            .map(x => [x.lts.toLowerCase(), x])
-            .reverse());
-        const numbered = Object.values(aliases);
-        const release = alias === '*'
-            ? numbered[numbered.length - 1]
-            : n < 0
-                ? numbered[numbered.length - 1 + n]
-                : aliases[alias];
-        if (!release) {
-            throw new Error(`Unable to find LTS release '${alias}' for Node version '${versionSpec}'.`);
-        }
-        core.debug(`Found LTS release '${release.version}' for Node version '${versionSpec}'`);
-        return release.version.split('.')[0];
-    }
-    resolveVersionFromManifest(versionSpec, stable, osArch, manifest) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const info = yield this.getInfoFromManifest(versionSpec, stable, osArch, manifest);
-                return info === null || info === void 0 ? void 0 : info.resolvedVersion;
-            }
-            catch (err) {
-                core.info('Unable to resolve version from manifest...');
-                core.debug(err.message);
-            }
-        });
-    }
-    getInfoFromManifest(versionSpec, stable, osArch, manifest) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let info = null;
-            if (!manifest) {
-                core.debug('No manifest cached');
-                manifest = yield this.getManifest();
-            }
-            const rel = yield tc.findFromManifest(versionSpec, stable, manifest, osArch);
-            if (rel && rel.files.length > 0) {
-                info = {};
-                info.resolvedVersion = rel.version;
-                info.arch = rel.files[0].arch;
-                info.downloadUrl = rel.files[0].download_url;
-                info.fileName = rel.files[0].filename;
-            }
-            return info;
-        });
-    }
-    isLtsAlias(versionSpec) {
-        return versionSpec.startsWith('lts/');
-    }
-    isLatestSyntax(versionSpec) {
-        return ['current', 'latest', 'node'].includes(versionSpec);
     }
 }
 exports["default"] = OfficialBuilds;
@@ -72219,6 +72039,7 @@ function run() {
             const version = resolveVersionInput();
             let arch = core.getInput('architecture');
             const cache = core.getInput('cache');
+            core.info('start running');
             // if architecture supplied but node-version is not
             // if we don't throw a warning, the already installed x64 node will be used which is not probably what user meant.
             if (arch && !version) {
