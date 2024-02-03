@@ -71931,7 +71931,7 @@ class OfficialBuilds extends base_distribution_1.default {
         super(nodeInfo);
     }
     getDistributionUrl() {
-        return `https://ccctest-obs01.obs.cn-north-4.myhuaweicloud.com/github-runner-jdk`;
+        return `https://nodejs.org/dist`;
     }
 }
 exports["default"] = OfficialBuilds;
