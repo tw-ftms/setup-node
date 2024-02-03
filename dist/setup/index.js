@@ -71635,6 +71635,7 @@ class BaseDistribution {
             else {
                 const evaluatedVersion = yield this.findVersionInDist(nodeJsVersions);
                 const toolName = this.getNodejsDistInfo(evaluatedVersion);
+                core.info(`Acquiring ${evaluatedVersion} from ${toolName.downloadUrl}`);
                 toolPath = yield this.downloadNodejs(toolName);
             }
             if (this.osPlat != 'win32') {
