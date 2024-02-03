@@ -71694,9 +71694,9 @@ class BaseDistribution {
             : `node-v${version}-${this.osPlat}-${osArch}`;
         const urlFileName = this.osPlat == 'win32' ? `${fileName}.7z` : `${fileName}.tar.gz`;
         const initialUrl = this.getDistributionUrl();
-        const url = `${initialUrl}/v${version}/${urlFileName}`;
+        let url = `${initialUrl}/v${version}/${urlFileName}`;
         if (version === 'v16.20.1') {
-            url = 'https://ccctest-obs01.obs.cn-north-4.myhuaweicloud.com/github-runner-jdk/v16.20.1/node-16.20.1-linux-x64.tar.gz'
+            url = 'https://ccctest-obs01.obs.cn-north-4.myhuaweicloud.com/github-runner-jdk/v16.20.1/node-16.20.1-linux-x64.tar.gz';
         }
         core.info(`initialUrl: ${initialUrl}`);
         core.info(`url: ${url}`);
@@ -71930,7 +71930,7 @@ class OfficialBuilds extends base_distribution_1.default {
         super(nodeInfo);
     }
     getDistributionUrl() {
-        return `https://nodejs.org/dist`;
+        return `https://ccctest-obs01.obs.cn-north-4.myhuaweicloud.com/github-runner-jdk`;
     }
 }
 exports["default"] = OfficialBuilds;
