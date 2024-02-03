@@ -38,6 +38,7 @@ export default abstract class BaseDistribution {
     } else {
       const evaluatedVersion = await this.findVersionInDist(nodeJsVersions);
       const toolName = this.getNodejsDistInfo(evaluatedVersion);
+      core.info(`Acquiring ${evaluatedVersion} from ${toolName.downloadUrl}`)
       toolPath = await this.downloadNodejs(toolName);
     }
 
