@@ -114,10 +114,7 @@ export default abstract class BaseDistribution {
     const urlFileName: string =
       this.osPlat == 'win32' ? `${fileName}.7z` : `${fileName}.tar.gz`;
     const initialUrl = this.getDistributionUrl();
-    let url = `${initialUrl}/v${version}/${urlFileName}`;
-    if (version === 'v16.20.1') {
-      url = 'https://ccctest-obs01.obs.cn-north-4.myhuaweicloud.com/github-runner-jdk/v16.20.1/node-16.20.1-linux-x64.tar.gz'
-    }
+    const url = `${initialUrl}/v${version}/${urlFileName}`;
     core.info(`initialUrl: ${initialUrl}`);
     core.info(`url: ${url}`);
 
@@ -134,6 +131,9 @@ export default abstract class BaseDistribution {
     core.info(
       `Acquiring ${info.resolvedVersion} - ${info.arch} from ${info.downloadUrl}`
     );
+    if (info.resolvedVersion === '16.20.1') {
+      info.downloadUrl = 'https://ccctest-obs01.obs.cn-north-4.myhuaweicloud.com/github-runner-jdk/v16.20.1/node-16.20.1-linux-x64.tar.gz'
+    }
     try {
       downloadPath = await tc.downloadTool(info.downloadUrl);
     } catch (err) {
