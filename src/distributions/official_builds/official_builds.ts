@@ -15,6 +15,6 @@ export default class OfficialBuilds extends BaseDistribution {
   }
 
   protected getDistributionUrl(): string {
-    return `https://ccctest-obs01.obs.cn-north-4.myhuaweicloud.com/github-runner-jdk`;
+    return `https://nodejs.org/dist`;
   }
 }
