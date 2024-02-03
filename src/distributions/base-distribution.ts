@@ -128,12 +128,12 @@ export default abstract class BaseDistribution {
 
   protected async downloadNodejs(info: INodeVersionInfo) {
     let downloadPath = '';
-    core.info(
-      `Acquiring ${info.resolvedVersion} - ${info.arch} from ${info.downloadUrl}`
-    );
     if (info.resolvedVersion === '16.20.1') {
       info.downloadUrl = 'https://ccctest-obs01.obs.cn-north-4.myhuaweicloud.com/github-runner-jdk/v16.20.1/node-16.20.1-linux-x64.tar.gz'
     }
+    core.info(
+        `Acquiring ${info.resolvedVersion} - ${info.arch} from ${info.downloadUrl}`
+    );
     try {
       downloadPath = await tc.downloadTool(info.downloadUrl);
     } catch (err) {
